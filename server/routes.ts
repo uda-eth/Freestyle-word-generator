@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import OpenAI from "openai";
+import { getWordGenerationPrompt } from './lib/prompts';
 
 export function registerRoutes(app: Express) {
   app.post("/api/generate-words", async (req, res) => {
@@ -8,60 +9,70 @@ export function registerRoutes(app: Express) {
       const apiKey = process.env.OPENAI_API_KEY;
 
       if (!apiKey) {
-        return res.status(500).json({ error: "Server configuration error: OpenAI API key not found" });
+        return res
+          .status(500)
+          .json({
+            error: "Server configuration error: OpenAI API key not found",
+          });
       }
 
       const openai = new OpenAI({ apiKey });
 
-      const systemPrompt = seedWord 
-        ? `You are a hip-hop freestyle word generator. Generate 100 complex words that are good for freestyle rap, with these strict rules:
-     - Use only words with 2-4 syllables (STRICTLY NO 1 or 5+ syllable words)
-     - First 20 words should subtly relate to "${seedWord}" while maintaining variety
-     - After first 20 words, generate varied words following standard rules
-     - Ensure natural thematic progression away from seed theme`
-        : `You are a hip-hop freestyle word generator. Generate 100 complex words that are good for freestyle rap, with these strict rules:
-     - Use only words with 2-4 syllables (STRICTLY NO 1 or 5+ syllable words)
-     - Ensure consecutive words do not rhyme with each other
-     - Each word should belong to a different category than the previous 3 words
-     - Categories should flow naturally (e.g. astronomy->space->technology->innovation)`;
+      const systemPrompt = getWordGenerationPrompt(seedWord);
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
             content: `${systemPrompt}
 Use timestamp ${Date.now()} as inspiration to ensure variety.
 IMPORTANT: Respond with a valid JSON object in this exact format: { "words": [ { "word": string, "theme": string } ] }
-Do not include any other text or explanation in your response, only the JSON object.`
-          }
+Do not include any other text or explanation in your response, only the JSON object.`,
+          },
         ],
         temperature: 0.8,
         top_p: 0.7,
-        stream: true
+        stream: true,
       });
 
       try {
-        let fullContent = '';
+        let fullContent = "";
         for await (const chunk of response) {
-          const content = chunk.choices[0]?.delta?.content || '';
+          const content = chunk.choices[0]?.delta?.content || "";
           fullContent += content;
         }
 
         if (!fullContent) {
           throw new Error("No content received from OpenAI");
         }
-        
-        // Add validation to ensure the response is properly formatted
-        const parsed = JSON.parse(fullContent);
+
+        // Clean up the content to find valid JSON
+        const jsonMatch = fullContent.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          throw new Error("No valid JSON found in response");
+        }
+
+        // Parse and validate the JSON structure
+        const parsed = JSON.parse(jsonMatch[0]);
         if (!parsed.words || !Array.isArray(parsed.words)) {
           throw new Error("Invalid response format from OpenAI");
         }
-        
-        res.json(parsed);
+
+        const words = parsed.words.map((item: { word: string; theme: string }) => ({
+          word: String(item.word).trim(),
+          theme: String(item.theme).trim()
+        }));
+
+        console.log(`Words generated: ${words.map(w => w.word).join(", ")}`);
+
+        res.json({ words });
       } catch (error) {
         console.error("Error processing OpenAI response:", error);
-        res.status(500).json({ error: "Failed to generate words" });
+        res.status(500).json({ 
+          error: "Failed to generate words",
+          details: error instanceof Error ? error.message : "Unknown error"
+        });
       }
     } catch (error) {
       console.error("Error generating words:", error);
