@@ -36,36 +36,52 @@ export function registerRoutes(app: Express) {
         messages: [
           {
             role: "system",
-            content: `${systemPrompt}
-Use seed "${generateRandomSeed()}" for randomization.
-Additional randomization parameters:
-- Vary word complexity within 2-4 syllable range
-- Mix abstract and concrete concepts
-- Include both modern and timeless terms
-- Balance common and sophisticated vocabulary
-
-IMPORTANT: Respond with a valid JSON object in this exact format: { "words": [ { "word": string, "theme": string } ] }
-Do not include any other text or explanation in your response, only the JSON object.`,
-          },
+            content: `${systemPrompt}\nUse seed "${generateRandomSeed()}" for randomization.\nAdditional randomization parameters:\n- Vary word complexity within 2-4 syllable range\n- Mix abstract and concrete concepts\n- Include both modern and timeless terms\n- Balance common and sophisticated vocabulary`
+          }
         ],
+        functions: [{
+          name: "generate_words",
+          description: "Generate words for freestyle rap practice",
+          parameters: {
+            type: "object",
+            properties: {
+              words: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    word: { type: "string" },
+                    theme: { type: "string" }
+                  },
+                  required: ["word", "theme"]
+                }
+              }
+            },
+            required: ["words"]
+          }
+        }],
+        function_call: { name: "generate_words" },
         temperature: 1.0,
         top_p: 0.95,
         frequency_penalty: 0.3,
         presence_penalty: 0.3,
       });
 
-      const content = response.choices[0]?.message?.content;
-      if (!content) {
-        throw new Error("No content received from OpenAI");
-      }
-
-      // Add validation to ensure the response is properly formatted
-      const parsed = JSON.parse(content);
-      if (!parsed.words || !Array.isArray(parsed.words)) {
+      const functionCall = response.choices[0]?.message?.function_call;
+      if (!functionCall || functionCall.name !== "generate_words") {
         throw new Error("Invalid response format from OpenAI");
       }
 
-      res.json(parsed);
+      try {
+        const parsed = JSON.parse(functionCall.arguments);
+        if (!parsed.words || !Array.isArray(parsed.words)) {
+          throw new Error("Invalid words array in response");
+        }
+        res.json(parsed);
+      } catch (error) {
+        console.error("Error parsing OpenAI response:", error);
+        throw new Error("Failed to parse OpenAI response");
+      }
     } catch (error) {
       console.error("Error generating words:", error);
       res.status(500).json({ error: "Failed to generate words" });
