@@ -21,7 +21,7 @@ const LOADING_MESSAGES = [
   "Setting the stage for greatness... 🎪"
 ];
   
-  const [isPlaying, setIsPlaying] = useState(false);
+  
   const [currentWord, setCurrentWord] = useState("");
   const [currentTheme, setCurrentTheme] = useState("");
   const [timeLeft, setTimeLeft] = useState(10);
@@ -65,23 +65,21 @@ const LOADING_MESSAGES = [
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (isPlaying && timeLeft > 0) {
+    if (timeLeft > 0) {
       timer = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
-    } else if (timeLeft === 0 && isPlaying) {
+    } else if (timeLeft === 0) {
       getNextWord();
     }
     return () => clearInterval(timer);
-  }, [timeLeft, isPlaying, getNextWord]);
+  }, [timeLeft, getNextWord]);
 
   const handleStart = async () => {
-    // No need to check for API key as it's now server-side
     setLoadingMessage(LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]);
     try {
       await fetchNewBatch();
       getNextWord();
-      setIsPlaying(true);
     } catch (error) {
       toast({
         title: "Error",
@@ -99,13 +97,10 @@ const LOADING_MESSAGES = [
     setCurrentWord("");
     setCurrentTheme("");
     setTimeLeft(10);
-    setIsPlaying(false);
   };
 
   const handleSkip = () => {
-    if (isPlaying) {
-      getNextWord();
-    }
+    getNextWord();
   };
 
   return (
@@ -119,7 +114,7 @@ const LOADING_MESSAGES = [
       </motion.h1>
 
       <div className="w-full max-w-md space-y-6">
-        {!isPlaying ? (
+        {!currentWord ? (
           <motion.div 
             className="space-y-4"
             initial={{ opacity: 0 }}
@@ -149,8 +144,6 @@ const LOADING_MESSAGES = [
                 isLoading={generateWords.isPending} 
               />
               <Controls 
-                isPlaying={isPlaying} 
-                onPause={() => setIsPlaying(false)}
                 onSkip={handleSkip}
                 onReset={handleReset}
               />
