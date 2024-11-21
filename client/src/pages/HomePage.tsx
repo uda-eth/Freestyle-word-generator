@@ -57,8 +57,8 @@ const LOADING_MESSAGES = [
     setTimeLeft(10);
     setWordCount(prev => prev + 1);
 
-    // Fetch new batch when queue is running low
-    if (wordQueue.length < 10) {
+    // Fetch new batch when queue is running low (reduced threshold)
+    if (wordQueue.length < 5) {
       fetchNewBatch();
     }
   }, [wordQueue, fetchNewBatch]);

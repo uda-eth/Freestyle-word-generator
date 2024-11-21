@@ -23,7 +23,7 @@ export default function WordDisplay({ word, timeLeft = 10, isLoading = false }: 
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
         >
-          {isLoading ? "Loading..." : word || "Ready"}
+          {isLoading ? "Generating words..." : word || "Ready"}
         </motion.h2>
       </motion.div>
       <motion.div 
