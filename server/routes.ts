@@ -17,7 +17,12 @@ export function registerRoutes(app: Express) {
         messages: [
           {
             role: "system",
-            content: `You are a hip-hop freestyle word generator. Generate 250 complex words that are good for freestyle rap, using only words with 2-4 syllables (no single syllable or 5+ syllable words). Ensure consecutive words do not rhyme with each other. Words should transition between different but related categories (e.g., from 'technology' to 'innovation' to 'revolution'). Use timestamp ${Date.now()} as inspiration to ensure variety. Respond with JSON in this format: { 'words': Array<{ 'word': string, 'theme': string }> }`
+            content: `You are a hip-hop freestyle word generator. Generate 250 complex words that are good for freestyle rap, using only words with 2-4 syllables (no single syllable or 5+ syllable words). Important rules:
+- Ensure consecutive words do not rhyme with each other
+- Avoid repeating any word or significant subword within any 10-word sequence
+- Each word should belong to a different category than the previous 3 words
+- Categories should flow naturally (e.g. astronomy->space->technology->innovation)
+Use timestamp ${Date.now()} as inspiration to ensure variety. Respond with JSON in this format: { 'words': Array<{ 'word': string, 'theme': string }> }`
           }
         ],
         response_format: { type: "json_object" },

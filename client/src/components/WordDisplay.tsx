@@ -26,7 +26,21 @@ export default function WordDisplay({ word, timeLeft = 10, isLoading = false }: 
           {isLoading ? "Loading..." : word || "Ready"}
         </motion.h2>
       </motion.div>
-      <Progress value={(timeLeft / 10) * 100} className="h-2" />
+      <motion.div 
+        className="h-2 bg-primary/20 rounded-full overflow-hidden"
+      >
+        <motion.div
+          className="h-full bg-primary"
+          initial={{ width: "100%" }}
+          animate={{ width: "0%" }}
+          transition={{ 
+            duration: 10,
+            ease: "linear",
+            repeat: 0
+          }}
+          key={word} // Reset animation when word changes
+        />
+      </motion.div>
     </div>
   );
 }
