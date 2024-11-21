@@ -3,9 +3,11 @@ import { Progress } from "@/components/ui/progress";
 
 interface WordDisplayProps {
   word: string;
+  timeLeft?: number;
+  isLoading?: boolean;
 }
 
-export default function WordDisplay({ word }: WordDisplayProps) {
+export default function WordDisplay({ word, timeLeft = 10, isLoading = false }: WordDisplayProps) {
   return (
     <div className="space-y-4">
       <motion.div
@@ -21,10 +23,10 @@ export default function WordDisplay({ word }: WordDisplayProps) {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
         >
-          {word || "Ready"}
+          {isLoading ? "Loading..." : word || "Ready"}
         </motion.h2>
       </motion.div>
-      <Progress value={66} className="h-2" />
+      <Progress value={(timeLeft / 10) * 100} className="h-2" />
     </div>
   );
 }

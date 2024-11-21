@@ -1,18 +1,50 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import WordDisplay from "../components/WordDisplay";
 import Controls from "../components/Controls";
 import { useToast } from "@/hooks/use-toast";
+import { useGenerateWords } from "../lib/openai";
 
 export default function HomePage() {
   const [apiKey, setApiKey] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentWord, setCurrentWord] = useState("");
+  const [currentTheme, setCurrentTheme] = useState("");
+  const [timeLeft, setTimeLeft] = useState(10);
   const { toast } = useToast();
+  
+  const generateWords = useGenerateWords(apiKey);
 
-  const handleStart = () => {
+  const getNextWord = useCallback(async () => {
+    try {
+      const result = await generateWords.mutateAsync();
+      setCurrentWord(result.word);
+      setCurrentTheme(result.theme);
+      setTimeLeft(10);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate word",
+        variant: "destructive",
+      });
+    }
+  }, [generateWords, toast]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isPlaying && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0 && isPlaying) {
+      getNextWord();
+    }
+    return () => clearInterval(timer);
+  }, [timeLeft, isPlaying, getNextWord]);
+
+  const handleStart = async () => {
     if (!apiKey) {
       toast({
         title: "API Key Required",
@@ -21,11 +53,22 @@ export default function HomePage() {
       });
       return;
     }
-    setIsPlaying(true);
+    try {
+      await getNextWord();
+      setIsPlaying(true);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to start practice. Please check your API key.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSkip = () => {
-    // Trigger new word generation
+    if (isPlaying) {
+      getNextWord();
+    }
   };
 
   return (
@@ -68,7 +111,11 @@ export default function HomePage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
             >
-              <WordDisplay word={currentWord} />
+              <WordDisplay 
+                word={currentWord} 
+                timeLeft={timeLeft}
+                isLoading={generateWords.isPending} 
+              />
               <Controls 
                 isPlaying={isPlaying} 
                 onPause={() => setIsPlaying(false)}
