@@ -17,10 +17,12 @@ export function registerRoutes(app: Express) {
         messages: [
           {
             role: "system",
-            content: "You are a hip-hop freestyle word generator. Generate 250 complex, multi-syllable words that are good for freestyle rap. Words should transition between different but related categories (e.g., from 'technology' to 'innovation' to 'revolution'). Avoid one-syllable words. Respond with JSON in this format: { 'words': Array<{ 'word': string, 'theme': string }> }"
+            content: `You are a hip-hop freestyle word generator. Generate 250 complex words that are good for freestyle rap, using only words with 2-4 syllables (no single syllable or 5+ syllable words). Words should transition between different but related categories (e.g., from 'technology' to 'innovation' to 'revolution'). Use timestamp ${Date.now()} as inspiration to ensure variety. Respond with JSON in this format: { 'words': Array<{ 'word': string, 'theme': string }> }`
           }
         ],
-        response_format: { type: "json_object" }
+        response_format: { type: "json_object" },
+        temperature: 1.0,
+        top_p: 0.9
       });
 
       const content = response.choices[0].message.content;
