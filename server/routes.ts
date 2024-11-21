@@ -4,7 +4,9 @@ import OpenAI from "openai";
 function generateRandomSeed() {
   const timestamp = Date.now();
   const randomNum = Math.random();
-  const seed = `${timestamp}-${randomNum}`.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+  const seed = `${timestamp}-${randomNum}`
+    .split("")
+    .reduce((a, b) => a + b.charCodeAt(0), 0);
   return seed.toString(36);
 }
 
@@ -15,11 +17,9 @@ export function registerRoutes(app: Express) {
       const apiKey = process.env.OPENAI_API_KEY;
 
       if (!apiKey) {
-        return res
-          .status(500)
-          .json({
-            error: "Server configuration error: OpenAI API key not found",
-          });
+        return res.status(500).json({
+          error: "Server configuration error: OpenAI API key not found",
+        });
       }
 
       const openai = new OpenAI({ apiKey });
@@ -52,31 +52,20 @@ Do not include any other text or explanation in your response, only the JSON obj
         top_p: 0.95,
         frequency_penalty: 0.3,
         presence_penalty: 0.3,
-        stream: true,
       });
 
-      try {
-        let fullContent = "";
-        for await (const chunk of response) {
-          const content = chunk.choices[0]?.delta?.content || "";
-          fullContent += content;
-        }
-
-        if (!fullContent) {
-          throw new Error("No content received from OpenAI");
-        }
-
-        // Add validation to ensure the response is properly formatted
-        const parsed = JSON.parse(fullContent);
-        if (!parsed.words || !Array.isArray(parsed.words)) {
-          throw new Error("Invalid response format from OpenAI");
-        }
-
-        res.json(parsed);
-      } catch (error) {
-        console.error("Error processing OpenAI response:", error);
-        res.status(500).json({ error: "Failed to generate words" });
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error("No content received from OpenAI");
       }
+
+      // Add validation to ensure the response is properly formatted
+      const parsed = JSON.parse(content);
+      if (!parsed.words || !Array.isArray(parsed.words)) {
+        throw new Error("Invalid response format from OpenAI");
+      }
+
+      res.json(parsed);
     } catch (error) {
       console.error("Error generating words:", error);
       res.status(500).json({ error: "Failed to generate words" });
