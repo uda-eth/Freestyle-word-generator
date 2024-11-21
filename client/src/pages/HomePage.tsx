@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import WordDisplay from "../components/WordDisplay";
 import Controls from "../components/Controls";
 import { useToast } from "@/hooks/use-toast";
-import { useGenerateWords } from "../lib/openai";
+import { useGenerateWords, type GeneratedWord } from "../lib/openai";
 
 export default function HomePage() {
   const [apiKey, setApiKey] = useState("");
@@ -14,6 +14,7 @@ export default function HomePage() {
   const [currentTheme, setCurrentTheme] = useState("");
   const [timeLeft, setTimeLeft] = useState(10);
   const [wordQueue, setWordQueue] = useState<GeneratedWord[]>([]);
+  const [wordCount, setWordCount] = useState(0);
   const { toast } = useToast();
   
   const generateWords = useGenerateWords(apiKey);
@@ -41,6 +42,7 @@ export default function HomePage() {
     setCurrentWord(nextWord.word);
     setCurrentTheme(nextWord.theme);
     setTimeLeft(10);
+    setWordCount(prev => prev + 1);
 
     // Fetch new batch when queue is running low
     if (wordQueue.length < 10) {
@@ -80,6 +82,15 @@ export default function HomePage() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleReset = () => {
+    setWordQueue([]);
+    setWordCount(0);
+    setCurrentWord("");
+    setCurrentTheme("");
+    setTimeLeft(10);
+    setIsPlaying(false);
   };
 
   const handleSkip = () => {
@@ -137,7 +148,11 @@ export default function HomePage() {
                 isPlaying={isPlaying} 
                 onPause={() => setIsPlaying(false)}
                 onSkip={handleSkip}
+                onReset={handleReset}
               />
+              <div className="text-sm text-muted-foreground text-center mt-4">
+                {wordCount}/{wordQueue.length} words
+              </div>
             </motion.div>
           </AnimatePresence>
         )}

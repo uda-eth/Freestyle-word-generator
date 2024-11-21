@@ -17,7 +17,7 @@ export function registerRoutes(app: Express) {
         messages: [
           {
             role: "system",
-            content: "You are a hip-hop freestyle word generator. Generate 100 thematically related words that would be good for freestyle rap practice. Each word should have a theme. Respond with JSON in this format: { 'words': Array<{ 'word': string, 'theme': string }> }"
+            content: "You are a hip-hop freestyle word generator. Generate 250 complex, multi-syllable words that are good for freestyle rap. Words should transition between different but related categories (e.g., from 'technology' to 'innovation' to 'revolution'). Avoid one-syllable words. Respond with JSON in this format: { 'words': Array<{ 'word': string, 'theme': string }> }"
           }
         ],
         response_format: { type: "json_object" }
