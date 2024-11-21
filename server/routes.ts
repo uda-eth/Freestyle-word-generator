@@ -5,7 +5,7 @@ import { getWordGenerationPrompt } from './lib/prompts';
 export function registerRoutes(app: Express) {
   app.post("/api/generate-words", async (req, res) => {
     try {
-      const { seedWord } = req.body;
+      
       const apiKey = process.env.OPENAI_API_KEY;
 
       if (!apiKey) {
@@ -18,7 +18,7 @@ export function registerRoutes(app: Express) {
 
       const openai = new OpenAI({ apiKey });
 
-      const systemPrompt = getWordGenerationPrompt(seedWord);
+      const systemPrompt = getWordGenerationPrompt();
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",

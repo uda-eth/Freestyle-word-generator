@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Input } from "@/components/ui/input";
+
 import { Button } from "@/components/ui/button";
 import WordDisplay from "../components/WordDisplay";
 import Controls from "../components/Controls";
@@ -20,7 +20,7 @@ const LOADING_MESSAGES = [
   "Loading inspiration... 💭",
   "Setting the stage for greatness... 🎪"
 ];
-  const [seedWord, setSeedWord] = useState("");
+  
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentWord, setCurrentWord] = useState("");
   const [currentTheme, setCurrentTheme] = useState("");
@@ -30,7 +30,7 @@ const LOADING_MESSAGES = [
   const [loadingMessage, setLoadingMessage] = useState("");
   const { toast } = useToast();
   
-  const generateWords = useGenerateWords(seedWord);
+  const generateWords = useGenerateWords();
 
   const fetchNewBatch = useCallback(async () => {
     try {
@@ -125,13 +125,7 @@ const LOADING_MESSAGES = [
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <Input
-              placeholder="Enter a theme word (optional)"
-              type="text"
-              value={seedWord}
-              onChange={(e) => setSeedWord(e.target.value)}
-              className="w-full"
-            />
+            
             <Button 
               onClick={handleStart}
               className="w-full"
