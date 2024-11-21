@@ -4,20 +4,25 @@ import OpenAI from "openai";
 export function registerRoutes(app: Express) {
   app.post("/api/generate-words", async (req, res) => {
     try {
-      const { apiKey } = req.body;
+      const { seedWord } = req.body;
+      const apiKey = process.env.OPENAI_API_KEY;
 
       if (!apiKey) {
-        return res.status(400).json({ error: "API key is required" });
+        return res.status(500).json({ error: "Server configuration error: OpenAI API key not found" });
       }
 
       const openai = new OpenAI({ apiKey });
 
+      const systemPrompt = seedWord 
+        ? `You are a hip-hop freestyle word generator. Generate 250 complex words that are good for freestyle rap, using only words with 2-4 syllables (no single syllable or 5+ syllable words) and are thematically related to "${seedWord}". Important rules:`
+        : `You are a hip-hop freestyle word generator. Generate 250 complex words that are good for freestyle rap, using only words with 2-4 syllables (no single syllable or 5+ syllable words). Important rules:`;
+
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4",
         messages: [
           {
             role: "system",
-            content: `You are a hip-hop freestyle word generator. Generate 250 complex words that are good for freestyle rap, using only words with 2-4 syllables (no single syllable or 5+ syllable words). Important rules:
+            content: `${systemPrompt}
 - Ensure consecutive words do not rhyme with each other
 - Avoid repeating any word or significant subword within any 10-word sequence
 - Each word should belong to a different category than the previous 3 words

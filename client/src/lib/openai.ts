@@ -10,7 +10,7 @@ export interface GeneratedWordBatch {
   words: GeneratedWord[];
 }
 
-export const useGenerateWords = (apiKey: string) => {
+export const useGenerateWords = (seedWord?: string) => {
   return useMutation({
     mutationFn: async (): Promise<GeneratedWordBatch> => {
       const response = await fetch("/api/generate-words", {
@@ -18,7 +18,7 @@ export const useGenerateWords = (apiKey: string) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ apiKey }),
+        body: JSON.stringify({ seedWord }),
       });
 
       if (!response.ok) {

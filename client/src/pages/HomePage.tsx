@@ -20,7 +20,7 @@ const LOADING_MESSAGES = [
   "Loading inspiration... 💭",
   "Setting the stage for greatness... 🎪"
 ];
-  const [apiKey, setApiKey] = useState("");
+  const [seedWord, setSeedWord] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentWord, setCurrentWord] = useState("");
   const [currentTheme, setCurrentTheme] = useState("");
@@ -30,7 +30,7 @@ const LOADING_MESSAGES = [
   const [loadingMessage, setLoadingMessage] = useState("");
   const { toast } = useToast();
   
-  const generateWords = useGenerateWords(apiKey);
+  const generateWords = useGenerateWords(seedWord);
 
   const fetchNewBatch = useCallback(async () => {
     try {
@@ -76,14 +76,7 @@ const LOADING_MESSAGES = [
   }, [timeLeft, isPlaying, getNextWord]);
 
   const handleStart = async () => {
-    if (!apiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please enter your OpenAI API key to start.",
-        variant: "destructive",
-      });
-      return;
-    }
+    // No need to check for API key as it's now server-side
     setLoadingMessage(LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]);
     try {
       await fetchNewBatch();
@@ -133,10 +126,10 @@ const LOADING_MESSAGES = [
             animate={{ opacity: 1 }}
           >
             <Input
-              placeholder="Enter OpenAI API Key"
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="Enter a theme word (optional)"
+              type="text"
+              value={seedWord}
+              onChange={(e) => setSeedWord(e.target.value)}
               className="w-full"
             />
             <Button 
