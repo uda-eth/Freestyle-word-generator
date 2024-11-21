@@ -13,24 +13,40 @@ export default function HomePage() {
   const [currentWord, setCurrentWord] = useState("");
   const [currentTheme, setCurrentTheme] = useState("");
   const [timeLeft, setTimeLeft] = useState(10);
+  const [wordQueue, setWordQueue] = useState<GeneratedWord[]>([]);
   const { toast } = useToast();
   
   const generateWords = useGenerateWords(apiKey);
 
-  const getNextWord = useCallback(async () => {
+  const fetchNewBatch = useCallback(async () => {
     try {
       const result = await generateWords.mutateAsync();
-      setCurrentWord(result.word);
-      setCurrentTheme(result.theme);
-      setTimeLeft(10);
+      setWordQueue(prevQueue => [...prevQueue, ...result.words]);
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate word",
+        description: error instanceof Error ? error.message : "Failed to generate words",
         variant: "destructive",
       });
     }
   }, [generateWords, toast]);
+
+  const getNextWord = useCallback(() => {
+    if (wordQueue.length === 0) {
+      return;
+    }
+
+    const nextWord = wordQueue[0];
+    setWordQueue(prevQueue => prevQueue.slice(1));
+    setCurrentWord(nextWord.word);
+    setCurrentTheme(nextWord.theme);
+    setTimeLeft(10);
+
+    // Fetch new batch when queue is running low
+    if (wordQueue.length < 10) {
+      fetchNewBatch();
+    }
+  }, [wordQueue, fetchNewBatch]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -54,7 +70,8 @@ export default function HomePage() {
       return;
     }
     try {
-      await getNextWord();
+      await fetchNewBatch();
+      getNextWord();
       setIsPlaying(true);
     } catch (error) {
       toast({

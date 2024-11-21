@@ -6,9 +6,13 @@ export interface GeneratedWord {
   theme: string;
 }
 
+export interface GeneratedWordBatch {
+  words: GeneratedWord[];
+}
+
 export const useGenerateWords = (apiKey: string) => {
   return useMutation({
-    mutationFn: async (): Promise<GeneratedWord> => {
+    mutationFn: async (): Promise<GeneratedWordBatch> => {
       const response = await fetch("/api/generate-words", {
         method: "POST",
         headers: {

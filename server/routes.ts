@@ -17,7 +17,7 @@ export function registerRoutes(app: Express) {
         messages: [
           {
             role: "system",
-            content: "You are a hip-hop freestyle word generator. Generate a thematically related word that would be good for freestyle rap practice. Respond with JSON in this format: { 'word': string, 'theme': string }"
+            content: "You are a hip-hop freestyle word generator. Generate 100 thematically related words that would be good for freestyle rap practice. Each word should have a theme. Respond with JSON in this format: { 'words': Array<{ 'word': string, 'theme': string }> }"
           }
         ],
         response_format: { type: "json_object" }
@@ -28,7 +28,7 @@ export function registerRoutes(app: Express) {
         throw new Error("No content received from OpenAI");
       }
 
-      const result = JSON.parse(content) as { word: string; theme: string };
+      const result = JSON.parse(content) as { words: Array<{ word: string; theme: string }> };
       res.json(result);
     } catch (error) {
       console.error("Error generating words:", error);
