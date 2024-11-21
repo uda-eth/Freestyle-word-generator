@@ -8,6 +8,18 @@ import { useToast } from "@/hooks/use-toast";
 import { useGenerateWords, type GeneratedWord } from "../lib/openai";
 
 export default function HomePage() {
+const LOADING_MESSAGES = [
+  "Warming up those freestyle neurons... 🧠",
+  "Cooking up some fresh vocabulary... 🔥",
+  "Channeling your inner lyricist... 🎤",
+  "Loading rhyme ammunition... 🎯",
+  "Preparing your verbal arsenal... 💪",
+  "Igniting the creative spark... ⚡",
+  "Summoning the flow state... 🌊",
+  "Getting those bars ready... 🎵",
+  "Loading inspiration... 💭",
+  "Setting the stage for greatness... 🎪"
+];
   const [apiKey, setApiKey] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentWord, setCurrentWord] = useState("");
@@ -15,6 +27,7 @@ export default function HomePage() {
   const [timeLeft, setTimeLeft] = useState(10);
   const [wordQueue, setWordQueue] = useState<GeneratedWord[]>([]);
   const [wordCount, setWordCount] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState("");
   const { toast } = useToast();
   
   const generateWords = useGenerateWords(apiKey);
@@ -71,6 +84,7 @@ export default function HomePage() {
       });
       return;
     }
+    setLoadingMessage(LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]);
     try {
       await fetchNewBatch();
       getNextWord();
@@ -81,6 +95,8 @@ export default function HomePage() {
         description: "Failed to start practice. Please check your API key.",
         variant: "destructive",
       });
+    } finally {
+      setLoadingMessage("");
     }
   };
 
@@ -127,8 +143,9 @@ export default function HomePage() {
               onClick={handleStart}
               className="w-full"
               size="lg"
+              disabled={!!loadingMessage}
             >
-              Start Practice
+              {loadingMessage || "Start Practice"}
             </Button>
           </motion.div>
         ) : (
