@@ -27,21 +27,32 @@ export function registerRoutes(app: Express) {
 - Avoid repeating any word or significant subword within any 10-word sequence
 - Each word should belong to a different category than the previous 3 words
 - Categories should flow naturally (e.g. astronomy->space->technology->innovation)
-Use timestamp ${Date.now()} as inspiration to ensure variety. Respond with JSON in this format: { 'words': Array<{ 'word': string, 'theme': string }> }`
+Use timestamp ${Date.now()} as inspiration to ensure variety. 
+IMPORTANT: Respond with a valid JSON object in this exact format: { "words": [ { "word": string, "theme": string } ] }
+Do not include any other text or explanation in your response, only the JSON object.`
           }
         ],
-        response_format: { type: "json_object" },
         temperature: 1.0,
         top_p: 0.9
       });
 
-      const content = response.choices[0].message.content;
-      if (!content) {
-        throw new Error("No content received from OpenAI");
+      try {
+        const content = response.choices[0].message.content;
+        if (!content) {
+          throw new Error("No content received from OpenAI");
+        }
+        
+        // Add validation to ensure the response is properly formatted
+        const parsed = JSON.parse(content);
+        if (!parsed.words || !Array.isArray(parsed.words)) {
+          throw new Error("Invalid response format from OpenAI");
+        }
+        
+        res.json(parsed);
+      } catch (error) {
+        console.error("Error parsing OpenAI response:", error);
+        res.status(500).json({ error: "Failed to generate words" });
       }
-
-      const result = JSON.parse(content) as { words: Array<{ word: string; theme: string }> };
-      res.json(result);
     } catch (error) {
       console.error("Error generating words:", error);
       res.status(500).json({ error: "Failed to generate words" });
